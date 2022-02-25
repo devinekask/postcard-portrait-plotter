@@ -1,5 +1,15 @@
 # Postcard-portrait-plotter
 
+Run as:
+```bash
+zx index.mjs
+```
+
+Options:
+
+* `-f <file>`
+* `-p` to plot it
+
 ## Pyhton Environment
 
 [Creating a virtual env](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#creating-a-virtual-environment)
@@ -20,3 +30,9 @@
 ## Google ZX
 
 [Replace Bash with JavaScript](https://github.com/google/zx)
+
+## Varia
+
+```bash
+ pip install opencv-python axicli vpype
+```

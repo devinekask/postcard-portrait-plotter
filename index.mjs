@@ -7,7 +7,12 @@ const createSVG = async (source) => {
 };
 
 const optimizeSVG = async (name) => {
-	await $`vpype read ./output/${name}.svg write --page-size a6 --center  ./optimized/${name}.svg`
+	await $`vpype read ./output/${name}.svg layout --fit-to-margins 1cm --valign top a6 \
+	linemerge --tolerance 0.1mm \
+  linesort \
+  reloop \
+  linesimplify \
+	write --page-size a6 --center  ./optimized/${name}.svg`
 }
 
 const plotSVG = async (name) => {
@@ -16,10 +21,13 @@ const plotSVG = async (name) => {
 
 const run = async () => {
 	try {
-		console.log("create svg...");
-		const filename = await createSVG('p1.jpeg')
+		console.log("Lets draw");
+		const inputfile = argv?.f || "p1.jpeg"
+		const filename = await createSVG(inputfile)
 		await optimizeSVG(filename);
-		await plotSVG(filename);
+		if (argv.p) {
+			await plotSVG(filename);
+		}
 
 	} catch (err) {
 		console.log("ERROR", err)
