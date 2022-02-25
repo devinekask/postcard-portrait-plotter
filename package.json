@@ -1,0 +1,11 @@
+{
+	"name": "postcard-portrait-plotter",
+	"version": "1.0.0",
+	"description": "Plot a portrait",
+	"main": "index.js",
+	"scripts": {
+		"start": "node index.js"
+	},
+	"author": "",
+	"license": "ISC"
+}
