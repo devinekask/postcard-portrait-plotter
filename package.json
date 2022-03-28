@@ -2,9 +2,9 @@
 	"name": "postcard-portrait-plotter",
 	"version": "1.0.0",
 	"description": "Plot a portrait",
-	"main": "index.js",
+	"main": "index.mjs",
 	"scripts": {
-		"start": "node index.js"
+		"start": "zx index.mjs"
 	},
 	"author": "",
 	"license": "ISC"
