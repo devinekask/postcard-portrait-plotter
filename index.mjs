@@ -55,14 +55,13 @@ const getQueue = () => {
 
 const run = async () => {
 	try {
-
 		const choice = await question(`What do you want?
 ${chalk.inverse('p')} - plot next in queue
 ${chalk.inverse('l')} - list queue
 ${chalk.inverse('t')} - toggle pen up/down
 ${chalk.inverse('d')} - disengage motors
 ${chalk.inverse('q')} - quit
-`, { choices: ["p", "l", "t", 'd', 'q'] })
+`, { choices: ["p", "l", "t", 'd', 'q', "f"] })
 
 		switch (choice) {
 			case "p":
@@ -87,6 +86,10 @@ ${chalk.inverse('q')} - quit
 				break;
 			case "q":
 				console.log("quit");
+				break;
+			case "f":
+				await $`osascript ./foto.scpt`;
+				run();
 				break;
 			default:
 				console.log('Invalid choice');
