@@ -130,6 +130,7 @@ dist
 .pnp.*
 
 
+env/
 vpype_venv/
 linedraw-master/
 output/*
