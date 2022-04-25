@@ -1,6 +1,7 @@
 #!/usr/bin/env zx
 
-const tf = require('@tensorflow/tfjs-node')
+const tf = require('@tensorflow/tfjs-node');
+const { createOpAttr } = require('@tensorflow/tfjs-node/dist/nodejs_kernel_backend');
 const faceapi = require('@vladmandic/face-api');
 const canvas = require('canvas');
 
@@ -11,19 +12,23 @@ const cropDir = "./cropped/";
 const outputDir = "./output/";
 const optimizedDir = "./optimized/";
 
+const POSTCARD_RATIO = 1.41;
+
 const { Canvas, Image, ImageData } = canvas
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData })
 
 const createSVG = async (sourceFile, filename) => {
-	return await $`python3 ./linedraw-master/linedraw.py -i ${cropDir}${sourceFile} --output=${outputDir}${filename}.svg -nh --contour_simplify=2`;
+	const input = cropDir + sourceFile;
+	const output = outputDir + filename + '.svg';
+	return await $`python3 ./linedraw-master/linedraw.py -i ${input} --output=${output} -nh --contour_simplify=3`;
 };
 
 const optimizeSVG = async (filename, landscape) => {
-	await $`vpype read ${outputDir}${filename}.svg layout --fit-to-margins 1cm ${landscape ? '--landscape' : ''} --valign top a6 \
+	await $`vpype read ${outputDir}${filename}.svg layout --fit-to-margins 0.5cm ${landscape ? '--landscape' : ''} --valign top a6 \
 	linemerge --tolerance 0.1mm \
-  linesort \
-  reloop \
-  linesimplify \
+  	linesort \
+  	reloop \
+  	linesimplify \
 	write --page-size a6  ${landscape ? '--landscape' : ''} --center  ${optimizedDir}${filename}.svg`
 }
 
@@ -42,14 +47,26 @@ const cropFaces = async filename => {
 		const detection = detections[0]
 
 		const centerX = detection.box.x + detection.box.width / 2;
-		const width = detection.imageDims.height / 1.41;
-		const left = centerX - width / 2;
+		let width = detection.imageDims.height / POSTCARD_RATIO;
+		let left = centerX - width / 2;
+		let height = detection.imageDims.height;
+		let top=0;
 
 		//todo: valt de box van de face nog binnen de crop?
-		crop.left = parseInt(left, 10)
-		crop.width = parseInt(width, 10)
-		crop.height = parseInt(detection.imageDims.height, 10)
+		console.log(left,width, left+width, detection.imageDims.width)
+		if(left+width>detection.imageDims.width){
+			console.log('groter')
+			width = detection.imageDims.width-detection.box.x;
+			left = detection.box.x
+			height = width*POSTCARD_RATIO;
+			top = (detection.imageDims.height-height)/2;
+		}
 
+		crop.left = parseInt(left, 10);
+		crop.width = parseInt(width, 10);
+		crop.height = parseInt(height, 10);
+		crop.top = parseInt(top, 10);
+		console.log(crop, detection.imageDims)
 	} else if (detections.length > 1) {
 		const groupedDetection = { x: detections[0].imageDims.width, y: detections[0].imageDims.height, x2: 0, y2: 0 }
 
@@ -73,21 +90,30 @@ const cropFaces = async filename => {
 		const centerX = groupedDetection.x + (width / 2);
 		const centerY = groupedDetection.y + (height / 2);
 
-		if (height / 1.41 > width) {
-			width = height / 1.41;
+		if (height / POSTCARD_RATIO > width) {
+			width = height / POSTCARD_RATIO;
 		}
 
 		if (width / 1, 41 < height) {
-			height = width / 1.41;
+			height = width / POSTCARD_RATIO;
 		}
-
+	
+	
 		crop.left = parseInt(centerX - (width / 2), 10);
 		crop.top = parseInt(centerY - (height / 2), 10);
 		crop.width = parseInt(width, 10);
 		crop.height = parseInt(height, 10);
+
+		if(crop.left<0){
+			crop.left=0;
+		}
+		if(crop.top<0){
+			crop.top=0;
+		}
+		console.log(crop)
 	}
 
-	await sharp(`${sourceDir}${filename}`)
+	sharp(`${sourceDir}${filename}`)
 		.extract(crop)
 		.toFile(`${cropDir}${filename}`, function (err) {
 			console.log(err);
@@ -99,18 +125,23 @@ const cropFaces = async filename => {
 
 const plotFirstInQueue = async () => {
 	const firstFile = getQueue()[0];
-	console.log(chalk.blue("Plotting " + firstFile));
+	if(firstFile){
+		console.log(chalk.blue("Plotting " + firstFile));
 
-	const extension = path.extname(firstFile);
-	const filename = path.basename(firstFile, extension);
+		const extension = path.extname(firstFile);
+		const filename = path.basename(firstFile, extension);
+	
+		const orientation = await cropFaces(firstFile)
+		await createSVG(firstFile, filename)
+		await optimizeSVG(filename, orientation.landscape);
+		await plotSVG(filename);
+	
+		//await removeFromQueue(firstFile);
+		console.log(chalk.green("DONE"))
+	}else{
+		console.log(chalk.yellow("NO FILE"))
+	}
 
-	const orientation = await cropFaces(firstFile)
-	await createSVG(firstFile, filename)
-	await optimizeSVG(filename, orientation.landscape);
-	await plotSVG(filename);
-
-	//await removeFromQueue(firstFile);
-	console.log(chalk.green("DONE"))
 	return
 }
 
