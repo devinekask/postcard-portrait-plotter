@@ -136,5 +136,6 @@ linedraw-master/
 output/*
 optimized/*
 sourcefiles/*
+cropped/*
 !sourcefiles/p1.jpeg
 !sourcefiles/p2.jpeg
