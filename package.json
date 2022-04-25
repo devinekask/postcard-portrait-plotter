@@ -7,5 +7,11 @@
 		"start": "zx index.mjs"
 	},
 	"author": "",
-	"license": "ISC"
+	"license": "ISC",
+	"dependencies": {
+		"@tensorflow/tfjs-node": "^3.16.0",
+		"@vladmandic/face-api": "^1.6.7",
+		"canvas": "^2.9.1",
+		"sharp": "^0.30.4"
+	}
 }

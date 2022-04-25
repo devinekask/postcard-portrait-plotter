@@ -26,8 +26,13 @@ python -m pip install https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.
 ```
 
 ```bash
-pip install opencv-python vpype
+pip install opencv-python
+pip install Pillow
+pip install vpype
 ```
+
+vpype on M1
+https://vpype.readthedocs.io/en/latest/install.html#installing-using-pipx-apple-silicon-m1
 
 ## Google ZX
 
