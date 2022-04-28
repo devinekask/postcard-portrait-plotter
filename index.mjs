@@ -51,6 +51,13 @@ const plotFirstInQueue = async () => {
 	return
 }
 
+const calibrate = async () => {
+	fs.copyFileSync('./assets/calibrate/calibrate.svg', './output/calibrate.svg');
+	await optimizeSVG('calibrate', false);
+	await plotSVG('calibrate');
+	console.log(chalk.green("DONE CALIBRATING"));
+}
+
 const removeFromQueue = async (sourceFile) => {
 	await fs.remove(`${sourceDir}${sourceFile}`)
 	console.log(chalk.red("Removed " + sourceFile));
@@ -77,8 +84,9 @@ ${chalk.inverse('p')} - plot next in queue
 ${chalk.inverse('l')} - list queue
 ${chalk.inverse('t')} - toggle pen up/down
 ${chalk.inverse('d')} - disengage motors
+${chalk.inverse('c')} - calibration plot
 ${chalk.inverse('q')} - quit
-`, { choices: ["p", "l", "t", 'd', 'q', "f"] })
+`, { choices: ["p", "l", "t", 'd', 'c', 'q'] })
 
 		switch (choice) {
 			case "p":
@@ -101,12 +109,13 @@ ${chalk.inverse('q')} - quit
 				await $`axicli --mode toggle`;
 				run();
 				break;
+			case "c":
+				console.log("Calibrate");
+				await calibrate();
+				run();
+				break;
 			case "q":
 				console.log("quit");
-				break;
-			case "f":
-				await $`osascript ./foto.scpt`;
-				run();
 				break;
 			default:
 				console.log('Invalid choice');
