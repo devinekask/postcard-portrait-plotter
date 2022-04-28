@@ -13,15 +13,16 @@ const createSVG = async (sourceFile, filename) => {
 };
 
 const optimizeSVG = async (filename, landscape) => {
-	await $`vpype read ${outputDir}${filename}.svg layout --fit-to-margins 0.5cm ${landscape ? '--landscape' : ''} --valign top a6 \
+	await $`vpype read ${outputDir}${filename}.svg layout --fit-to-margins 0mm ${landscape ? '--landscape' : ''} 99x148mm \
 	linemerge --tolerance 0.1mm \
   	linesort \
   	reloop \
   	linesimplify \
-	write --page-size a6  ${landscape ? '--landscape' : ''} --center  ${optimizedDir}${filename}.svg`
+	write --page-size 100x148mm  ${landscape ? '--landscape' : ''}  ${optimizedDir}${filename}.svg`
 }
 
 const plotSVG = async (filename) => {
+
 	await $`axicli ./optimized/${filename}.svg -o outputfile.svg -L2`;
 }
 
@@ -42,7 +43,7 @@ const plotFirstInQueue = async () => {
 		await optimizeSVG(filename, orientation.landscape);
 		await plotSVG(filename);
 
-		//await removeFromQueue(firstFile);
+		await removeFromQueue(firstFile);
 		console.log(chalk.green("DONE"))
 	} else {
 		console.log(chalk.yellow("NO FILE"))
