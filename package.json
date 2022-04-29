@@ -4,7 +4,7 @@
 	"description": "Plot a portrait",
 	"main": "index.mjs",
 	"scripts": {
-		"start": "zx index.mjs"
+		"start": "source ./env/bin/activate && zx index.mjs"
 	},
 	"author": "",
 	"license": "ISC",
