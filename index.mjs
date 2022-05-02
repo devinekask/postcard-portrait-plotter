@@ -1,5 +1,7 @@
 #!/usr/bin/env zx
 import smartCrop from "./smartcrop.mjs";
+import applescript from "applescript";
+import util from "util";
 
 const sourceDir = "./sourcefiles/";
 const cropDir = "./cropped/";
@@ -105,10 +107,28 @@ const cancelCurrentPlotTaskIfNeeded = async () => {
 	currentPlotTask = false;
 }
 
+const delay = (ms) => new Promise(resolve => setTimeout(() => resolve(), ms));
+
+const takePicture = async () => {
+	const execAppleScript = util.promisify(applescript.execString)
+	await execAppleScript(`activate application "Photo Booth"`)
+	await delay(1000)
+	await execAppleScript(`
+	tell application "System Events" to tell process "Photo Booth"
+		delay 0.2
+		keystroke return using command down
+	end tell
+	`)
+	await delay(5000)
+	await $`cp -p "\`ls -dtr1 "/Users/devine/Pictures/Photo Booth Library/Pictures"/* | tail -1\`" "/Users/devine/Documents/plotter/postcard-portrait-plotter/sourcefiles"`
+	await execAppleScript(`activate application "Visual Studio Code"`)
+}
+
 const run = async () => {
 	try {
 		const choice = await question(`What do you want?
 ${chalk.inverse('p')} - plot next in queue
+${chalk.inverse('f')} - take a picture
 ${chalk.inverse('l')} - list queue
 ${chalk.inverse('t')} - toggle pen up/down
 ${chalk.inverse('d')} - disengage motors
@@ -121,6 +141,11 @@ ${chalk.inverse('q')} - quit
 				console.log("get next file");
 				await cancelCurrentPlotTaskIfNeeded();
 				currentPlotTask = plotFirstInQueue();
+				run();
+				break;
+			case "f":
+				console.log("take picture");
+				await takePicture();
 				run();
 				break;
 			case "l":
