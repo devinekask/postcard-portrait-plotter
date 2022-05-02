@@ -71,11 +71,12 @@ const listQueue = () => {
 
 const getQueue = () => {
 	const files = fs.readdirSync(sourceDir);
-	files.sort(function (a, b) {
+	const filtered = files.filter(file => path.basename(file)!==".DS_Store");
+	filtered.sort(function (a, b) {
 		return fs.statSync(sourceDir + a).mtime.getTime() -
 			fs.statSync(sourceDir + b).mtime.getTime();
 	});
-	return files;
+	return filtered;
 }
 
 const run = async () => {

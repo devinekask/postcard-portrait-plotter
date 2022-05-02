@@ -141,3 +141,4 @@ cropped/*
 !sourcefiles/p2.jpeg
 outputfile.svg
 croptests/croppedpictures/*
+.DS_Store
