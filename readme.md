@@ -6,9 +6,9 @@
 
 - A visitor presses the countdown button
 - The button is wired to a Arduino, which sends a keyboard shortcut to the mac.
-- The shortcut triggers an Automator action, which starts the Photo Booth countdown.
+- The shortcut triggers the Photo Booth countdown.
 - A picture is taken
-- The Automator script waits for a couple of seconds and then copies the picture to a source folder.
+- After a couple of seconds the picture is copied to a source folder.
 
 ### Plotting the picture
 
@@ -92,4 +92,3 @@ npm i -g zx
 ## Troubleshooting
 
 - The terminal running the plotter script, needs to be in focus to receive the keyboard input that the Arduino sends.
-- The Automator workflow for the picture taking needs all kind of permissions. Basically every app that can be in focus needs to be allowed.
