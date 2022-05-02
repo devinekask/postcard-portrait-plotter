@@ -6,14 +6,16 @@ const cropDir = "./cropped/";
 const outputDir = "./output/";
 const optimizedDir = "./optimized/";
 
-const createSVG = async (sourceFile, filename) => {
+let currentPlotTask;
+
+const createSVG = (sourceFile, filename) => {
 	const input = cropDir + sourceFile;
 	const output = outputDir + filename + '.svg';
-	return await $`python3 ./linedraw-master/linedraw.py -i ${input} --output=${output} -nh --contour_simplify=3`;
+	return $`python3 ./linedraw-master/linedraw.py -i ${input} --output=${output} -nh --contour_simplify=3`;
 };
 
-const optimizeSVG = async (filename, landscape) => {
-	await $`vpype read ${outputDir}${filename}.svg layout --fit-to-margins 0mm ${landscape ? '--landscape' : ''} 99x148mm \
+const optimizeSVG = (filename, landscape) => {
+	return $`vpype read ${outputDir}${filename}.svg layout --fit-to-margins 0mm ${landscape ? '--landscape' : ''} 99x148mm \
 	linemerge --tolerance 0.1mm \
   	linesort \
   	reloop \
@@ -21,35 +23,52 @@ const optimizeSVG = async (filename, landscape) => {
 	write --page-size 100x148mm  ${landscape ? '--landscape' : ''}  ${optimizedDir}${filename}.svg`
 }
 
-const plotSVG = async (filename) => {
-
-	await $`axicli ./optimized/${filename}.svg -o outputfile.svg -L2`;
+const plotSVG = (filename) => {
+	return $`axicli ./optimized/${filename}.svg -o outputfile.svg -L2`;
 }
 
-const cropFaces = async filename => {
-	return await smartCrop(`${sourceDir}${filename}`, `${cropDir}${filename}`);
+const cropFaces = filename => {
+	return smartCrop(`${sourceDir}${filename}`, `${cropDir}${filename}`);
 }
 
-const plotFirstInQueue = async () => {
-	const firstFile = getQueue()[0];
-	if (firstFile) {
-		console.log(chalk.blue("Plotting " + firstFile));
-
-		const extension = path.extname(firstFile);
-		const filename = path.basename(firstFile, extension);
-
-		const orientation = await cropFaces(firstFile)
-		await createSVG(firstFile, filename)
-		await optimizeSVG(filename, orientation.landscape);
-		await plotSVG(filename);
-
-		await removeFromQueue(firstFile);
-		console.log(chalk.green("DONE"))
-	} else {
-		console.log(chalk.yellow("NO FILE"))
-	}
-
-	return
+const plotFirstInQueue = () => {
+	let isCancelled = false;
+	let plotSVGPromise = false;
+	const task = {
+		isDone: false,
+		_execute: async () => {
+			const firstFile = getQueue()[0];
+			if (firstFile) {
+				console.log(chalk.blue("Plotting " + firstFile));
+		
+				const extension = path.extname(firstFile);
+				const filename = path.basename(firstFile, extension);
+		
+				const orientation = await cropFaces(firstFile)
+				if (isCancelled) return;
+				await createSVG(firstFile, filename)
+				if (isCancelled) return;
+				await optimizeSVG(filename, orientation.landscape);
+				if (isCancelled) return;
+				plotSVGPromise = plotSVG(filename);
+				await plotSVGPromise;
+				if (isCancelled) return;
+				await removeFromQueue(firstFile);
+				console.log(chalk.green("DONE"))
+				task.isDone = true;
+			} else {
+				console.log(chalk.yellow("NO FILE"))
+			}
+		},
+		cancel: async () => {
+			isCancelled = true;
+			if (plotSVGPromise) {
+				await plotSVGPromise.kill('SIGINT')
+			}
+		}
+	};
+	task._execute();
+	return task;
 }
 
 const calibrate = async () => {
@@ -79,6 +98,13 @@ const getQueue = () => {
 	return filtered;
 }
 
+const cancelCurrentPlotTaskIfNeeded = async () => {
+	if (currentPlotTask && !currentPlotTask.isDone) {
+		await currentPlotTask.cancel();
+	}
+	currentPlotTask = false;
+}
+
 const run = async () => {
 	try {
 		const choice = await question(`What do you want?
@@ -93,7 +119,8 @@ ${chalk.inverse('q')} - quit
 		switch (choice) {
 			case "p":
 				console.log("get next file");
-				await plotFirstInQueue();
+				await cancelCurrentPlotTaskIfNeeded();
+				currentPlotTask = plotFirstInQueue();
 				run();
 				break;
 			case "l":
@@ -103,16 +130,19 @@ ${chalk.inverse('q')} - quit
 				break;
 			case "d":
 				console.log("disengage motors");
+				await cancelCurrentPlotTaskIfNeeded();
 				await $`axicli --mode align`;
 				run();
 				break;
 			case "t":
 				console.log("Toggle up/down");
+				await cancelCurrentPlotTaskIfNeeded();
 				await $`axicli --mode toggle`;
 				run();
 				break;
 			case "c":
 				console.log("Calibrate");
+				await cancelCurrentPlotTaskIfNeeded();
 				await calibrate();
 				run();
 				break;
