@@ -1,13 +1,10 @@
+import * as fs from 'fs'
 import tf from '@tensorflow/tfjs-node';
 import faceapi from '@vladmandic/face-api';
-import canvas from 'canvas';
 import sharp from 'sharp';
 import smartcrop from 'smartcrop-sharp';
 
 const POSTCARD_RATIO = 1.414;
-
-const { Canvas, Image, ImageData } = canvas
-faceapi.env.monkeyPatch({ Canvas, Image, ImageData })
 
 const getBoundingBox = (regions, maxW, maxH) => {
 	const bb = { x: maxW, x2: 0, y: maxH, y2: 0 };
@@ -33,10 +30,17 @@ const getBoundingBox = (regions, maxW, maxH) => {
 const smartCrop = async (inputfile, outputfile) => {
 	await faceapi.nets.tinyFaceDetector.loadFromDisk('./assets/models')
 
-	const img = await canvas.loadImage(inputfile)
-	const detections = await faceapi.tinyFaceDetector(img, {})
-
-
+	tf.engine().startScope()
+	let detections = []
+	try {
+		const imgFile = fs.readFileSync(inputfile)
+		const img = tf.node.decodeImage(imgFile, 3)
+		detections = await faceapi.tinyFaceDetector(img, {})
+	} catch (e) {
+		console.error(inputfile)
+		console.error(e)
+	}
+	tf.engine().endScope()
 	console.log(`Detected ${detections.length} faces`);
 	const short = 1000;
 	const long = short * POSTCARD_RATIO;
