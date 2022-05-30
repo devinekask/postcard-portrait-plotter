@@ -18,17 +18,17 @@ const createSVG = (sourceFile, filename) => {
 };
 
 const optimizeSVG = (filename, landscape) => {
-	const origin = landscape ? `185mm 125mm` : `125mm 185mm`;
+	const origin = landscape ? `175mm 112mm` : `112mm 175mm`;
 	return $`vpype \
 	read --single-layer --layer 1 ${outputDir}${filename}.svg \
 	read --single-layer --layer 2 ${superimposeDir}logo-hatched.svg \
-		scaleto --layer 2 --origin ${origin.split(` `)} 20mm 20mm \
-	layout --fit-to-margins 0mm ${landscape ? --landscape : ''} 99x148mm \
+		translate  --layer 2 ${origin.split(" ")} \
+	layout --fit-to-margins 0mm ${landscape ? '--landscape' : ''} 99x148mm \
 	linemerge --tolerance 0.1mm \
   	linesort \
   	reloop \
   	linesimplify \
-	write --page-size 100x148mm  ${landscape ? --landscape : ''}  ${optimizedDir}${filename}.svg`
+	write --page-size 100x148mm  ${landscape ? '--landscape' : ''}  ${optimizedDir}${filename}.svg`
 }
 
 const plotSVG = (filename) => {
