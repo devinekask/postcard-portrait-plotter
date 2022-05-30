@@ -7,6 +7,7 @@ const sourceDir = "./sourcefiles/";
 const cropDir = "./cropped/";
 const outputDir = "./output/";
 const optimizedDir = "./optimized/";
+const superimposeDir = "./assets/superimpose/";
 
 let currentPlotTask;
 
@@ -17,12 +18,17 @@ const createSVG = (sourceFile, filename) => {
 };
 
 const optimizeSVG = (filename, landscape) => {
-	return $`vpype read ${outputDir}${filename}.svg layout --fit-to-margins 0mm ${landscape ? '--landscape' : ''} 99x148mm \
+	const origin = landscape ? `185mm 125mm` : `125mm 185mm`;
+	return $`vpype \
+	read --single-layer --layer 1 ${outputDir}${filename}.svg \
+	read --single-layer --layer 2 ${superimposeDir}logo-hatched.svg \
+		scaleto --layer 2 --origin ${origin.split(` `)} 20mm 20mm \
+	layout --fit-to-margins 0mm ${landscape ? --landscape : ''} 99x148mm \
 	linemerge --tolerance 0.1mm \
   	linesort \
   	reloop \
   	linesimplify \
-	write --page-size 100x148mm  ${landscape ? '--landscape' : ''}  ${optimizedDir}${filename}.svg`
+	write --page-size 100x148mm  ${landscape ? --landscape : ''}  ${optimizedDir}${filename}.svg`
 }
 
 const plotSVG = (filename) => {
@@ -42,10 +48,10 @@ const plotFirstInQueue = () => {
 			const firstFile = getQueue()[0];
 			if (firstFile) {
 				console.log(chalk.blue("Plotting " + firstFile));
-		
+
 				const extension = path.extname(firstFile);
 				const filename = path.basename(firstFile, extension);
-		
+
 				const orientation = await cropFaces(firstFile)
 				if (isCancelled) return;
 				await createSVG(firstFile, filename)
@@ -92,7 +98,7 @@ const listQueue = () => {
 
 const getQueue = () => {
 	const files = fs.readdirSync(sourceDir);
-	const filtered = files.filter(file => path.basename(file)!==".DS_Store");
+	const filtered = files.filter(file => path.basename(file) !== ".DS_Store");
 	filtered.sort(function (a, b) {
 		return fs.statSync(sourceDir + a).mtime.getTime() -
 			fs.statSync(sourceDir + b).mtime.getTime();
@@ -120,7 +126,8 @@ const takePicture = async () => {
 	end tell
 	`)
 	await delay(5000)
-	await $`cp -p "\`ls -dtr1 "/Users/devine/Pictures/Photo Booth Library/Pictures"/* | tail -1\`" "/Users/devine/Documents/plotter/postcard-portrait-plotter/sourcefiles"`
+	const home = await $`echo $HOME`;
+	await $`cp -p "\`ls -dtr1 "${home}/Pictures/Photo Booth Library/Pictures"/* | tail -1\`" "./sourcefiles"`
 	await execAppleScript(`activate application "Visual Studio Code"`)
 }
 
