@@ -7,7 +7,6 @@ const sourceDir = "./sourcefiles/";
 const cropDir = "./cropped/";
 const outputDir = "./output/";
 const optimizedDir = "./optimized/";
-const superimposeDir = "./assets/superimpose/";
 
 let currentPlotTask;
 
@@ -18,12 +17,7 @@ const createSVG = (sourceFile, filename) => {
 };
 
 const optimizeSVG = (filename, landscape) => {
-	const origin = landscape ? `175mm 112mm` : `112mm 175mm`;
-	return $`vpype \
-	read --single-layer --layer 1 ${outputDir}${filename}.svg \
-	read --single-layer --layer 2 ${superimposeDir}logo-hatched.svg \
-		translate  --layer 2 ${origin.split(" ")} \
-	layout --fit-to-margins 0mm ${landscape ? '--landscape' : ''} 99x148mm \
+	return $`vpype read ${outputDir}${filename}.svg layout --fit-to-margins 0mm ${landscape ? '--landscape' : ''} 99x148mm \
 	linemerge --tolerance 0.1mm \
   	linesort \
   	reloop \
