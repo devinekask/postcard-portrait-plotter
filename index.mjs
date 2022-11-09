@@ -4,11 +4,16 @@ import applescript from "applescript";
 import util from "util";
 
 const sourceDir = "./sourcefiles/";
-const cropDir = "./cropped/";
+const cropDir = "./image_processing/cropped/";
+const noBGDir = "./image_processing/nobg/";
+const optimizedDir = "./image_processing/optimized/";
 const outputDir = "./output/";
-const optimizedDir = "./optimized/";
 
 let currentPlotTask;
+
+const removeBackground = async filename => {
+	return $`rembg i ${sourceDir}${filename} ${noBGDir}${filename}`;
+}
 
 const createSVG = (sourceFile, filename) => {
 	const input = cropDir + sourceFile;
@@ -26,11 +31,11 @@ const optimizeSVG = (filename, landscape) => {
 }
 
 const plotSVG = (filename) => {
-	return $`axicli ./optimized/${filename}.svg -o outputfile.svg -L2`;
+	return $`axicli ${optimizedDir}${filename}.svg -o outputfile.svg -L2`;
 }
 
 const cropFaces = filename => {
-	return smartCrop(`${sourceDir}${filename}`, `${cropDir}${filename}`);
+	return smartCrop(`${noBGDir}${filename}`, `${cropDir}${filename}`);
 }
 
 const plotFirstInQueue = () => {
@@ -46,6 +51,7 @@ const plotFirstInQueue = () => {
 				const extension = path.extname(firstFile);
 				const filename = path.basename(firstFile, extension);
 
+				await removeBackground(firstFile);
 				const orientation = await cropFaces(firstFile)
 				if (isCancelled) return;
 				await createSVG(firstFile, filename)

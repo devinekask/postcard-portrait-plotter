@@ -67,6 +67,14 @@ python -m pip install https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.
 pip install opencv-python
 pip install Pillow
 pip install vpype
+pip install rembg
+```
+
+PIP/Pillow issues?
+
+```bash
+python3 -m pip install --upgrade pip
+python3 -m pip install --upgrade Pillow
 ```
 
 vpype on M1
@@ -84,6 +92,10 @@ npm i -g zx
 
 [The Swiss-Army-knife command-line tool for plotter vector graphics.](https://github.com/abey79/vpype)
 [stable release](https://vpype.readthedocs.io/en/stable/install.html)
+
+### Rembg
+
+<https://github.com/danielgatis/rembg>
 
 ## AxiDraw CLI
 

@@ -134,9 +134,8 @@ env/
 vpype_venv/
 linedraw-master/
 output/*
-optimized/*
 sourcefiles/*
-cropped/*
+image_processing/*
 !sourcefiles/p1.jpeg
 !sourcefiles/p2.jpeg
 outputfile.svg
