@@ -97,6 +97,8 @@ npm i -g zx
 
 <https://github.com/danielgatis/rembg>
 
+[installing this on a M1](https://github.com/scipy/scipy/issues/14615#issuecomment-910448762)
+
 ## AxiDraw CLI
 
 [https://axidraw.com/doc/cli_api/](https://axidraw.com/doc/cli_api/)

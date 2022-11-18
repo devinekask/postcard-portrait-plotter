@@ -4,7 +4,8 @@
 	"description": "Plot a portrait",
 	"main": "index.mjs",
 	"scripts": {
-		"start": "source ./env/bin/activate && zx index.mjs"
+		"plotter": "source ./env/bin/activate && zx index.mjs",
+		"start": "arch -x86_64 npm run plotter"
 	},
 	"author": "",
 	"license": "ISC",
