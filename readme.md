@@ -1,5 +1,7 @@
 # Postcard-portrait-plotter
 
+![The plotter in action](./plotter.jpg)
+
 ## Flow
 
 ### Taking a picture
